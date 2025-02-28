@@ -5,13 +5,15 @@
   </div>
   <div class="container">
     <transition
-      name="para"
+      :css="false"
       @before-enter="beforeEnter"
       @enter="enter"
       @after-enter="afterEnter"
       @before-leave="beforeLeave"
       @leave="leave"
       @after-leave="afterLeave"
+      @enter-cancelled="enterCancelled"
+      @leave-cancelled="leaveCancelled"
     >
       <p v-if="paraIsVisible">This is sometimes visible...</p>
     </transition>
@@ -40,23 +42,51 @@ export default {
       dialogIsVisible: false,
       paraIsVisible: false,
       usersAreVisible: false,
+      enterInterval: null,
+      leaveInterval: null,
     };
   },
   methods: {
-    beforeEnter() {
-      console.log('beforeEnter');
+    enterCancelled() {
+      clearInterval(this.enterInterval);
     },
-    enter() {
+    leaveCancelled() {
+      clearInterval(this.leaveInterval);
+    },
+    beforeEnter(el) {
+      console.log('beforeEnter');
+      el.style.opacity = 0;
+    },
+    enter(el, done) {
       console.log('enter');
+      let round = 1;
+      this.enterInterval = setInterval(() => {
+        el.style.opacity = round * 0.01;
+        round++;
+        if (round > 100) {
+          clearInterval(this.enterInterval);
+          done();
+        }
+      }, 20);
     },
     afterEnter() {
       console.log('after-enter');
     },
-    beforeLeave() {
+    beforeLeave(el) {
       console.log('beforeLeave');
+      el.style.opacity = 1;
     },
-    leave() {
+    leave(el, done) {
       console.log('leave');
+      let round = 1;
+      this.leaveInterval = setInterval(() => {
+        el.style.opacity = 1 - round * 0.01;
+        round++;
+        if (round > 100) {
+          clearInterval(this.leaveInterval);
+          done();
+        }
+      }, 20);
     },
     afterLeave() {
       console.log('after-leave');
